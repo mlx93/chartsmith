@@ -2,11 +2,8 @@ import { test, expect, Page } from '@playwright/test';
 
 async function loginTestUser(page: Page) {
   await page.goto('/login?test-auth=true');
-  // Wait for navigation after login
-  await Promise.all([
-    page.waitForNavigation(),
-    page.waitForTimeout(2000)
-  ]);
+  // Wait for the page to redirect away from /login (test-auth flow is async)
+  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
   expect(page.url()).not.toContain('/login'); // Verify successful login
 }
 
@@ -53,7 +50,7 @@ test('import chart from artifacthub', async ({ page }) => {
     await expect(page.locator('[data-testid="assistant-message"]')).toBeVisible();
 
     // Send a message to render the chart
-    await page.fill('textarea[placeholder="Type your message..."]', 'render this chart using the default values.yaml');
+    await page.fill('textarea[placeholder="Ask a question or ask for a change..."]', 'render this chart using the default values.yaml');
     await page.click('button[type="submit"]');
 
     // Wait 3 seconds for the response
